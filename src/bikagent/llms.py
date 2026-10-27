@@ -17,6 +17,10 @@ class LLMClient:
                 if response.status_code in [503, 429]:
                     time.sleep(2)
                     continue
+                if response.status_code != 200:
+                    print("=== خطأ من Gemini ===")
+                    print(response.text)
+                    print("======================")
                 response.raise_for_status()
                 return response.json()
             except Exception as e:
@@ -47,7 +51,7 @@ class LLMClient:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
         payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "tools": [{"function_declarations": tools_schema}]
         }
 
@@ -61,14 +65,25 @@ class LLMClient:
                     tool_name = func_call["name"]
                     args = func_call["args"]
                     
+                    print(f"
+⏳ [الوكيل يطلب استخدام أداة {tool_name}...]")
                     result = registry.run(tool_name, **args)
+                    print(f"✅ [نتيجة الأداة: {result}]")
                     
                     payload["contents"].append({"role": "model", "parts": [{"functionCall": func_call}]})
-                    payload["contents"].append({"role": "user", "parts": [{"functionResponse": {"name": tool_name, "response": {"result": result}}}]})
+                    payload["contents"].append({
+                        "role": "user", 
+                        "parts": [{
+                            "functionResponse": {
+                                "name": tool_name, 
+                                "response": {"content": str(result)}
+                            }
+                        }]
+                    })
                     
                     data2 = self._send_request(client, url, headers, payload)
                     return data2["candidates"][0]["content"]["parts"][0]["text"]
 
                 return parts[0]["text"]
         except Exception as e:
-            return f"عذراً، خوادم Gemini مزدحمة حالياً أو حدث خطأ: {e}"
+            return f"عذراً، حدث خطأ: {e}"
