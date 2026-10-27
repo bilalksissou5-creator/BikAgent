@@ -1,0 +1,7 @@
+name: "BikAgent"
+goal: "وكيل ذكاء اصطناعي عام قابل للتوسع"
+llm:
+  provider: "openrouter"
+  model: "openai/gpt-4o-mini"
+tools: []
+max_cycles: 10
