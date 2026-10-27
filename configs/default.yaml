@@ -2,6 +2,6 @@ name: "BikAgent"
 goal: "وكيل ذكاء اصطناعي عام قابل للتوسع"
 llm:
   provider: "gemini"
-  model: "gemini-1.5-flash"
+  model: "gemini-2.5-flash"
 tools: []
 max_cycles: 10

@@ -13,8 +13,11 @@ class LLMClient:
         if not self.api_key:
             return "خطأ: مفتاح API غير موجود في ملف .env"
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-        headers = {"Content-Type": "application/json"}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": self.api_key
+        }
         payload = {
             "contents": [{"parts": [{"text": prompt}]}]
         }
