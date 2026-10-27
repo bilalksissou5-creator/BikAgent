@@ -42,7 +42,7 @@ class LLMClient:
                 "parameters": {
                     "type": "OBJECT",
                     "properties": {
-                        "expression": {"type": "STRING", "description": "التعبير"}
+                        "expression": {"type": "STRING", "description": "التعبير الرياضي"}
                     },
                     "required": ["expression"]
                 }
