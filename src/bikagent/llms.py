@@ -20,18 +20,18 @@ class LLMClient:
                 if response.status_code != 200:
                     print("=== خطأ من Gemini ===")
                     print(response.text)
-                    print("======================")
+                    print("=====================")
                 response.raise_for_status()
                 return response.json()
             except Exception as e:
                 if attempt == retries - 1:
                     raise e
                 time.sleep(2)
-        raise Exception("فشل الاتصال بعد عدة محاولات")
+        raise Exception("فشل الاتصال")
 
     def chat(self, prompt: str, registry: any) -> str:
         if not self.api_key:
-            return "خطأ: مفتاح API غير موجود في ملف .env"
+            return "خطأ: مفتاح API غير موجود."
 
         tools_schema = []
         for name in registry.list():
@@ -42,7 +42,7 @@ class LLMClient:
                 "parameters": {
                     "type": "OBJECT",
                     "properties": {
-                        "expression": {"type": "STRING", "description": "التعبير الرياضي"}
+                        "expression": {"type": "STRING", "description": "التعبير"}
                     },
                     "required": ["expression"]
                 }
@@ -64,23 +64,22 @@ class LLMClient:
                     func_call = parts[0]["functionCall"]
                     tool_name = func_call["name"]
                     args = func_call["args"]
-                    
-                    print(f"
-⏳ [الوكيل يطلب استخدام أداة {tool_name}...]")
+
+                    print("الوكيل يستخدم الأداة:", tool_name)
                     result = registry.run(tool_name, **args)
-                    print(f"✅ [نتيجة الأداة: {result}]")
-                    
+                    print("نتيجة الأداة:", result)
+
                     payload["contents"].append({"role": "model", "parts": [{"functionCall": func_call}]})
                     payload["contents"].append({
-                        "role": "user", 
+                        "role": "user",
                         "parts": [{
                             "functionResponse": {
-                                "name": tool_name, 
-                                "response": {"content": str(result)}
+                                "name": tool_name,
+                                "response": {"result": str(result)}
                             }
                         }]
                     })
-                    
+
                     data2 = self._send_request(client, url, headers, payload)
                     return data2["candidates"][0]["content"]["parts"][0]["text"]
 
