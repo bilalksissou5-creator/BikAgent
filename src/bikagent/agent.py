@@ -3,26 +3,27 @@ from __future__ import annotations
 from typing import Any
 from .config import load_config
 from .llms import LLMClient
+from .tools.registry import ToolRegistry
+from .tools.calculator import CalculatorTool
 
 class BikAgent:
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or load_config()
-        self.tools: dict[str, Any] = {}
         self.memory: list[dict[str, Any]] = []
         
+        # تسجيل الأدوات
+        self.registry = ToolRegistry()
+        self.registry.register(CalculatorTool())
+
         llm_config = self.config.get("llm", {})
         self.llm = LLMClient(
             provider=llm_config.get("provider", "gemini"),
-            model=llm_config.get("model", "gemini-1.5-flash")
+            model=llm_config.get("model", "gemini-3.5-flash")
         )
-
-    def register_tool(self, name: str, func: Any) -> None:
-        self.tools[name] = func
 
     def run(self, prompt: str) -> str:
         self.memory.append({"role": "user", "content": prompt})
-        print("جاري التفكير...")
-        response = self.llm.chat(prompt)
+        response = self.llm.chat(prompt, self.registry)
         self.memory.append({"role": "assistant", "content": response})
         return response
 
